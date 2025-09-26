@@ -1,0 +1,590 @@
+/*
+Theme Name: KAM Inspired
+Description: 一个受KAM.SPACE启发的极简主义作品集主题 - 朋友圈版本
+Version: 1.0
+Author: Your Name
+Text Domain: kam-inspired
+*/
+
+/* 重置和基础样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-dark: #0a0a0a;
+    --text-light: #ffffff;
+    --accent-color: #ff3e7f;
+    --gray-dark: #1a1a1a;
+    --gray-light: #666666;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* 微信朋友圈样式 */
+.wechat-moments {
+    background: #f5f5f5;
+    min-height: 100vh;
+}
+
+.moments-header {
+    background: linear-gradient(135deg, #07C160 0%, #09BB07 100%);
+    height: 300px;
+    position: relative;
+    overflow: hidden;
+}
+
+.moments-user-info {
+    position: absolute;
+    bottom: 30px;
+    left: 20px;
+    display: flex;
+    align-items: flex-end;
+    color: white;
+}
+
+.moments-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    border: 3px solid rgba(255,255,255,0.8);
+    margin-right: 15px;
+}
+
+.moments-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    object-fit: cover;
+}
+
+.moments-nickname {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.moments-bg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.moments-content {
+    background: white;
+    margin-top: -20px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.moments-list {
+    padding: 20px 0;
+}
+
+.moment-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    position: relative;
+}
+
+.moment-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.moment-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 6px;
+    margin-right: 12px;
+}
+
+.moment-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.moment-user-info {
+    flex: 1;
+}
+
+.moment-nickname {
+    font-weight: bold;
+    color: #576b95;
+    font-size: 1.1rem;
+    margin-bottom: 2px;
+}
+
+.moment-time {
+    font-size: 0.85rem;
+    color: #999;
+}
+
+.moment-content {
+    margin-bottom: 12px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.moment-images {
+    margin: 10px 0;
+}
+
+.moment-image-grid {
+    display: grid;
+    gap: 5px;
+}
+
+.moment-image-grid.single {
+    max-width: 70%;
+}
+
+.moment-image-grid.double {
+    grid-template-columns: 1fr 1fr;
+    max-width: 80%;
+}
+
+.moment-image-grid.triple {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 90%;
+}
+
+.moment-image-grid.multiple {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 100%;
+}
+
+.moment-image {
+    width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.moment-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.moment-image:hover img {
+    transform: scale(1.05);
+}
+
+.moment-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.moment-stats {
+    font-size: 0.85rem;
+    color: #999;
+}
+
+.moment-interaction {
+    display: flex;
+    gap: 15px;
+}
+
+.moment-like, .moment-comment {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.moment-like:hover, .moment-comment:hover {
+    background: #f5f5f5;
+}
+
+.moment-like.active {
+    color: #07C160;
+}
+
+.moment-likes {
+    background: #f8f8f8;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #576b95;
+}
+
+.moment-comments {
+    background: #f8f8f8;
+    border-radius: 6px;
+    margin-top: 8px;
+    padding: 10px 15px;
+}
+
+.moment-comment-item {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.moment-comment-item:last-child {
+    margin-bottom: 0;
+}
+
+.moment-comment-author {
+    color: #576b95;
+    font-weight: bold;
+}
+
+.moment-comment-text {
+    color: #333;
+}
+
+.moment-comment-input {
+    display: flex;
+    margin-top: 10px;
+    gap: 10px;
+}
+
+.moment-comment-input input {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 8px 15px;
+    outline: none;
+    font-size: 0.9rem;
+}
+
+.moment-comment-input input:focus {
+    border-color: #07C160;
+}
+
+.moment-comment-input button {
+    background: #07C160;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* 发布新动态 */
+.moment-publish {
+    background: white;
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.publish-input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    resize: none;
+    height: 80px;
+    font-size: 1rem;
+    outline: none;
+}
+
+.publish-input:focus {
+    border-color: #07C160;
+}
+
+.publish-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.publish-tools {
+    display: flex;
+    gap: 15px;
+}
+
+.publish-tool {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.publish-submit {
+    background: #07C160;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 25px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* 图片预览模态框 */
+.image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.image-modal.active {
+    display: flex;
+}
+
+.modal-image {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+}
+
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+/* 加载更多 */
+.load-more {
+    text-align: center;
+    padding: 20px;
+}
+
+.load-more-button {
+    background: #07C160;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 30px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .moments-header {
+        height: 250px;
+    }
+    
+    .moments-avatar {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .moment-item {
+        padding: 12px 15px;
+    }
+    
+    .moment-image-grid.single {
+        max-width: 100%;
+    }
+    
+    .moment-image-grid.double {
+        max-width: 100%;
+    }
+    
+    .moment-image-grid.triple {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .moments-header {
+        height: 200px;
+    }
+    
+    .moments-avatar {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .moments-nickname {
+        font-size: 1.2rem;
+    }
+    
+    .moment-item {
+        padding: 10px 12px;
+    }
+    
+    .moment-avatar {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* 布局样式 */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 导航样式 */
+.main-nav {
+    padding: 2rem 0;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    background: rgba(10, 10, 10, 0.9);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-links a {
+    color: var(--text-light);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--accent-color);
+}
+
+/* 页面样式 */
+.page-header {
+    padding: 8rem 0 4rem;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.page-description {
+    font-size: 1.2rem;
+    color: var(--gray-light);
+}
+
+/* QQ留言系统样式 */
+.comment-form-qq {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.comment-form-qq label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.comment-form-qq input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #333;
+    background: var(--gray-dark);
+    color: var(--text-light);
+    border-radius: 4px;
+}
+
+.qq-check-status {
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 0.9rem;
+}
+
+.qq-check-status.loading {
+    color: #ffa500;
+}
+
+.qq-check-status.success {
+    color: #4CAF50;
+}
+
+.qq-check-status.error {
+    color: #f44336;
+}
+
+/* 评论中的QQ信息显示 */
+.comment-qq-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: var(--gray-dark);
+    border-radius: 8px;
+}
+
+.qq-avatar {
+    width: 50px;
+    height: 50px;
+    margin-right: 1rem;
+}
+
+.qq-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.qq-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.qq-nickname {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.qq-number {
+    font-size: 0.9rem;
+    color: var(--gray-light);
+}
+
+/* 自定义Logo样式 */
+.site-logo {
+    height: 40px;
+    width: auto;
+}
+
+/* 响应式设计 */
+@media (max-width: 968px) {
+    .page-title {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+    }
+    
+    .site-logo {
+        height: 30px;
+    }
+}

@@ -1,0 +1,252 @@
+/* 平滑滚动 */
+html {
+    scroll-behavior: smooth;
+}
+
+/* 动画效果 */
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 导航菜单响应式 */
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.nav-toggle span {
+    width: 25px;
+    height: 3px;
+    background: var(--text-light);
+    margin: 3px 0;
+    transition: 0.3s;
+}
+
+/* 页面特定样式 */
+.about-hero {
+    padding: 8rem 0 4rem;
+    text-align: center;
+}
+
+.about-hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.about-hero .lead {
+    font-size: 1.3rem;
+    color: var(--gray-light);
+}
+
+/* 联系页面地图区域 */
+.map-section {
+    margin-top: 4rem;
+    padding-top: 4rem;
+    border-top: 1px solid #333;
+}
+
+.map-placeholder {
+    background: var(--gray-dark);
+    padding: 3rem;
+    text-align: center;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.map-placeholder p {
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+/* 404页面样式增强 */
+.error-actions {
+    margin: 2rem 0;
+}
+
+.back-home, .back-previous {
+    display: inline-block;
+    padding: 1rem 2rem;
+    margin: 0 1rem 1rem 0;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.back-home {
+    background: var(--accent-color);
+    color: white;
+}
+
+.back-previous {
+    background: transparent;
+    color: var(--text-light);
+    border: 1px solid var(--text-light);
+}
+
+.back-home:hover {
+    background: #e0356d;
+    transform: translateY(-2px);
+}
+
+.back-previous:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.error-search {
+    margin-top: 3rem;
+}
+
+.error-search p {
+    margin-bottom: 1rem;
+}
+
+/* 评论表单样式增强 */
+.comment-form {
+    margin-top: 3rem;
+}
+
+.comment-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.comment-form input,
+.comment-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #333;
+    background: var(--gray-dark);
+    color: var(--text-light);
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.comment-form .submit-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.comment-form .submit-btn:hover {
+    background: #e0356d;
+}
+
+/* 技能条动画 */
+.skill-progress.animated {
+    animation: fillBar 1.5s ease-in-out forwards;
+}
+
+@keyframes fillBar {
+    from { width: 0%; }
+    to { width: attr(data-width); }
+}
+
+/* 自定义背景图片的Hero区域 */
+.hero-section.with-bg {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* 响应式设计增强 */
+@media (max-width: 968px) {
+    .about-hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .error-content h1 {
+        font-size: 6rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: var(--bg-dark);
+        padding: 1rem 0;
+    }
+    
+    .nav-menu.active {
+        display: block;
+    }
+    
+    .nav-links {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .nav-links li {
+        border-bottom: 1px solid #333;
+    }
+    
+    .nav-links a {
+        display: block;
+        padding: 1rem 2rem;
+    }
+    
+    .nav-toggle {
+        display: flex;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .about-hero {
+        padding: 6rem 0 3rem;
+    }
+    
+    .about-hero h1 {
+        font-size: 2rem;
+    }
+    
+    .error-content h1 {
+        font-size: 4rem;
+    }
+    
+    .back-home, .back-previous {
+        display: block;
+        margin: 0.5rem 0;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .page-title {
+        font-size: 1.8rem;
+    }
+    
+    .works-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
