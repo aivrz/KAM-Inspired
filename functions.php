@@ -38,6 +38,11 @@ function kam_theme_scripts() {
     
     // 为AJAX传递参数
     wp_localize_script('main-js', 'ajaxurl', admin_url('admin-ajax.php'));
+    
+    // 传递用户登录状态
+    wp_localize_script('main-js', 'kamUser', array(
+        'loggedIn' => is_user_logged_in()
+    ));
 }
 add_action('wp_enqueue_scripts', 'kam_theme_scripts');
 
@@ -234,6 +239,76 @@ function kam_custom_css() {
             --bg-dark: <?php echo get_theme_mod('kam_bg_color', '#0a0a0a'); ?>;
             --text-light: <?php echo get_theme_mod('kam_text_color', '#ffffff'); ?>;
         }
+        
+        /* 图片预览网格 */
+        .image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        /* 登录提示样式 */
+        .login-prompt {
+            background: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-radius: 8px;
+        }
+        
+        .login-prompt a {
+            color: #07C160;
+            text-decoration: none;
+        }
+        
+        /* 评论表单样式调整 */
+        #commentform {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        #commentform .comment-text {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 15px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        
+        #commentform .comment-submit {
+            background: #07C160;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        /* 表情面板样式 */
+        .emoji-panel {
+            position: absolute;
+            z-index: 100;
+        }
+        
+        /* 位置输入框样式 */
+        .location-input input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        /* 动态位置信息 */
+        .moment-location {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 2px;
+        }
     </style>
     <?php
 }
@@ -242,21 +317,19 @@ add_action('wp_head', 'kam_custom_css');
 // AJAX处理点赞功能
 function kam_handle_moment_like() {
     $moment_id = intval($_POST['moment_id']);
-    $user_id = get_current_user_id();
     
-    if (!$user_id) {
-        wp_send_json_error('请先登录');
-    }
+    // 对于未登录用户，使用IP地址作为标识
+    $identifier = is_user_logged_in() ? get_current_user_id() : $_SERVER['REMOTE_ADDR'];
     
     $likes = get_post_meta($moment_id, 'moment_likes', true) ?: array();
-    $liked = in_array($user_id, $likes);
+    $liked = in_array($identifier, $likes);
     
     if ($liked) {
         // 取消点赞
-        $likes = array_diff($likes, array($user_id));
+        $likes = array_diff($likes, array($identifier));
     } else {
         // 点赞
-        $likes[] = $user_id;
+        $likes[] = $identifier;
     }
     
     update_post_meta($moment_id, 'moment_likes', $likes);
@@ -267,6 +340,7 @@ function kam_handle_moment_like() {
     ));
 }
 add_action('wp_ajax_moment_like', 'kam_handle_moment_like');
+add_action('wp_ajax_nopriv_moment_like', 'kam_handle_moment_like');
 
 // AJAX处理评论功能
 function kam_handle_moment_comment() {
@@ -282,24 +356,84 @@ function kam_handle_moment_comment() {
         wp_send_json_error('评论内容不能为空');
     }
     
-    $user = get_userdata($user_id);
-    $comment = array(
-        'author' => $user->display_name,
-        'content' => $content,
-        'time' => current_time('mysql')
+    // 使用WordPress默认评论功能
+    $commentdata = array(
+        'comment_post_ID' => $moment_id,
+        'comment_author' => wp_get_current_user()->display_name,
+        'comment_author_email' => wp_get_current_user()->user_email,
+        'comment_author_url' => wp_get_current_user()->user_url,
+        'comment_content' => $content,
+        'comment_type' => '',
+        'comment_parent' => 0,
+        'user_id' => $user_id,
     );
     
-    $comments = get_post_meta($moment_id, 'moment_comments', true) ?: array();
-    $comments[] = $comment;
+    // 添加评论
+    $comment_id = wp_new_comment($commentdata);
+    $comment = get_comment($comment_id);
     
-    update_post_meta($moment_id, 'moment_comments', $comments);
-    
-    wp_send_json_success(array(
-        'comment' => $comment,
-        'comment_count' => count($comments)
-    ));
+    if ($comment) {
+        wp_send_json_success(array(
+            'comment' => array(
+                'author' => $comment->comment_author,
+                'content' => $comment->comment_content
+            ),
+            'comment_count' => get_comments_number($moment_id)
+        ));
+    } else {
+        wp_send_json_error('评论失败');
+    }
 }
 add_action('wp_ajax_moment_comment', 'kam_handle_moment_comment');
+
+// 发布动态处理
+function kam_handle_publish_moment() {
+    if (!is_user_logged_in()) {
+        wp_send_json_error('请先登录');
+    }
+    
+    $content = sanitize_text_field($_POST['content']);
+    $location = sanitize_text_field($_POST['location']);
+    $images = json_decode(stripslashes($_POST['images']), true);
+    
+    if (empty($content) && empty($images)) {
+        wp_send_json_error('内容不能为空');
+    }
+    
+    // 创建新动态
+    $post_id = wp_insert_post(array(
+        'post_type' => 'moment',
+        'post_title' => '动态 ' . date('Y-m-d H:i:s'),
+        'post_content' => $content,
+        'post_status' => 'publish',
+        'post_author' => get_current_user_id()
+    ));
+    
+    if ($post_id) {
+        // 保存位置信息
+        if (!empty($location)) {
+            update_post_meta($post_id, 'moment_location', $location);
+        }
+        
+        // 保存图片
+        if (!empty($images)) {
+            $image_urls = array();
+            foreach ($images as $image_data) {
+                // 这里简化处理，实际应用中应该保存图片到服务器
+                $image_urls[] = $image_data;
+            }
+            update_post_meta($post_id, 'moment_images', implode(',', $image_urls));
+        }
+        
+        // 保存发布时间
+        update_post_meta($post_id, 'moment_date', current_time('mysql'));
+        
+        wp_send_json_success(array('post_id' => $post_id));
+    } else {
+        wp_send_json_error('发布失败');
+    }
+}
+add_action('wp_ajax_publish_moment', 'kam_handle_publish_moment');
 
 // 创建示例朋友圈动态
 function kam_create_sample_moments() {
@@ -328,19 +462,19 @@ function kam_create_sample_moments() {
     
     foreach ($sample_moments as $moment) {
         $post_id = wp_insert_post(array(
+            'post_type' => 'moment',
             'post_title' => $moment['title'],
             'post_content' => $moment['content'],
-            'post_type' => 'moment',
             'post_status' => 'publish',
             'post_author' => $moment['author']
         ));
         
-        // 设置动态时间
-        update_post_meta($post_id, 'moment_date', current_time('mysql'));
+        if ($post_id) {
+            update_post_meta($post_id, 'moment_date', current_time('mysql'));
+        }
     }
     
-    // 标记示例数据已创建
     update_option('kam_sample_moments_created', true);
 }
-add_action('after_switch_theme', 'kam_create_sample_moments');
-?>
+// 仅在主题激活时创建示例数据
+// register_activation_hook(__FILE__, 'kam_create_sample_moments');

@@ -24,6 +24,7 @@
     <!-- 朋友圈内容区域 -->
     <main class="moments-content">
         <!-- 发布新动态 -->
+        <?php if (is_user_logged_in()) : ?>
         <section class="moment-publish">
             <textarea class="publish-input" placeholder="分享新鲜事..."></textarea>
             <div class="publish-actions">
@@ -35,6 +36,11 @@
                 <button class="publish-submit">发布</button>
             </div>
         </section>
+        <?php else : ?>
+        <section class="moment-publish login-prompt">
+            <p>请<a href="<?php echo wp_login_url(get_permalink()); ?>">登录</a>后发布动态</p>
+        </section>
+        <?php endif; ?>
 
         <!-- 动态列表 -->
         <section class="moments-list" id="moments-list">
@@ -55,7 +61,17 @@
                     $moment_time = human_time_diff(get_the_time('U'), current_time('timestamp')) . '前';
                     $moment_images = get_post_meta(get_the_ID(), 'moment_images', true);
                     $moment_likes = get_post_meta(get_the_ID(), 'moment_likes', true) ?: array();
-                    $moment_comments = get_post_meta(get_the_ID(), 'moment_comments', true) ?: array();
+                    $moment_comments = get_comments(array(
+                        'post_id' => get_the_ID(),
+                        'status' => 'approve'
+                    ));
+                    
+                    // 获取位置信息
+                    $location = get_post_meta(get_the_ID(), 'moment_location', true);
+                    
+                    // 确定点赞标识（登录用户用ID，未登录用户用IP）
+                    $identifier = is_user_logged_in() ? get_current_user_id() : $_SERVER['REMOTE_ADDR'];
+                    $is_liked = in_array($identifier, $moment_likes);
                     ?>
                     
                     <article class="moment-item" data-moment-id="<?php the_ID(); ?>">
@@ -65,6 +81,9 @@
                             </div>
                             <div class="moment-user-info">
                                 <div class="moment-nickname"><?php echo esc_html($moment_author); ?></div>
+                                <?php if ($location) : ?>
+                                    <div class="moment-location"><?php echo esc_html($location); ?></div>
+                                <?php endif; ?>
                                 <div class="moment-time"><?php echo esc_html($moment_time); ?></div>
                             </div>
                         </div>
@@ -115,8 +134,9 @@
                             <div class="moment-interaction">
                                 <button class="moment-like" 
                                         data-moment-id="<?php the_ID(); ?>"
-                                        data-liked="<?php echo in_array(get_current_user_id(), $moment_likes) ? 'true' : 'false'; ?>">
-                                    👍 赞
+                                        data-liked="<?php echo $is_liked ? 'true' : 'false'; ?>"
+                                        <?php echo $is_liked ? 'class="moment-like active"' : ''; ?>>
+                                    <?php echo $is_liked ? '👍 已赞' : '👍 赞'; ?>
                                 </button>
                                 <button class="moment-comment" data-moment-id="<?php the_ID(); ?>">
                                     💬 评论
@@ -130,10 +150,15 @@
                                 👍 
                                 <?php
                                 $like_names = array();
-                                foreach ($moment_likes as $user_id) {
-                                    $user = get_userdata($user_id);
-                                    if ($user) {
-                                        $like_names[] = $user->display_name;
+                                foreach ($moment_likes as $id) {
+                                    if (is_numeric($id)) {
+                                        $user = get_userdata($id);
+                                        if ($user) {
+                                            $like_names[] = $user->display_name;
+                                        }
+                                    } else {
+                                        // 非登录用户，显示"访客"
+                                        $like_names[] = '访客';
                                     }
                                 }
                                 echo implode(', ', $like_names);
@@ -141,23 +166,31 @@
                             </div>
                         <?php endif; ?>
                         
-                        <!-- 评论列表 -->
+                        <!-- 评论列表 - 使用WordPress默认评论 -->
                         <?php if (!empty($moment_comments)) : ?>
                             <div class="moment-comments">
                                 <?php foreach ($moment_comments as $comment) : ?>
                                     <div class="moment-comment-item">
-                                        <span class="moment-comment-author"><?php echo esc_html($comment['author']); ?>：</span>
-                                        <span class="moment-comment-text"><?php echo esc_html($comment['content']); ?></span>
+                                        <span class="moment-comment-author"><?php echo esc_html(get_comment_author($comment)); ?>：</span>
+                                        <span class="moment-comment-text"><?php echo esc_html(get_comment_text($comment)); ?></span>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
                         
-                        <!-- 评论输入框 -->
-                        <div class="moment-comment-input" style="display: none;">
-                            <input type="text" placeholder="评论..." class="comment-text">
-                            <button class="comment-submit">发送</button>
-                        </div>
+                        <!-- 新代码：WordPress评论框容器 -->
+<div class="moment-wordpress-comments" style="display: none;">
+    <?php 
+    // 确保评论表单关联到当前动态ID
+    $comment_args = array(
+        'post_id' => get_the_ID(),
+        'title_reply' => __('回复'),
+        'label_submit' => __('发送评论'),
+        'comment_notes_before' => '' // 移除默认提示文本
+    );
+    comment_form($comment_args); 
+    ?>
+</div>
                     </article>
                     
                 <?php endwhile;

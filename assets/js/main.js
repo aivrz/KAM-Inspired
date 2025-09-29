@@ -62,12 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function likeMoment(momentId, button, isLiked) {
-        // 检查用户是否登录
-        if (!isUserLoggedIn()) {
-            alert('请先登录后再点赞');
-            return;
-        }
-        
         const data = new FormData();
         data.append('action', 'moment_like');
         data.append('moment_id', momentId);
@@ -264,103 +258,191 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== 发布动态功能 =====
     const publishInput = document.querySelector('.publish-input');
     const publishSubmit = document.querySelector('.publish-submit');
+    const publishTools = document.querySelectorAll('.publish-tool');
+    const imagePreviewGrid = document.createElement('div');
+    imagePreviewGrid.className = 'image-preview-grid';
+    imagePreviewGrid.style.display = 'none';
+    imagePreviewGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    imagePreviewGrid.style.gap = '5px';
+    imagePreviewGrid.style.marginTop = '10px';
     
-    if (publishSubmit) {
+    // 位置输入框
+    const locationInput = document.createElement('div');
+    locationInput.className = 'location-input';
+    locationInput.style.display = 'none';
+    locationInput.style.marginTop = '10px';
+    locationInput.innerHTML = '<input type="text" placeholder="输入位置..." class="location-text">';
+    
+    // 将图片预览和位置输入添加到发布区域
+    if (publishSubmit && publishInput) {
+        publishInput.parentNode.insertBefore(imagePreviewGrid, publishInput.nextSibling);
+        publishInput.parentNode.insertBefore(locationInput, imagePreviewGrid.nextSibling);
+        
         publishSubmit.addEventListener('click', function() {
-            const content = publishInput.value.trim();
+            publishMoment();
+        });
+        
+        // 图片上传功能
+        publishTools[0].addEventListener('click', function() {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.multiple = true;
             
-            if (!content) {
-                alert('请输入动态内容');
-                publishInput.focus();
-                return;
-            }
+            fileInput.addEventListener('change', function(e) {
+                handleImageUpload(e.target.files);
+            });
             
-            if (!isUserLoggedIn()) {
-                alert('请先登录后再发布动态');
-                return;
-            }
+            fileInput.click();
+        });
+        
+        // 表情选择功能
+        publishTools[1].addEventListener('click', function() {
+            const emojis = ['😊', '👍', '❤️', '🎉', '😂', '👏', '🤔', '😢', '😎', '😍', '🙏', '🎉', '🔥', '✨', '🌟'];
+            let emojiPanel = document.querySelector('.emoji-panel');
             
-            // 显示发布中状态
-            const originalText = publishSubmit.textContent;
-            publishSubmit.textContent = '发布中...';
-            publishSubmit.disabled = true;
-            
-            // 模拟发布过程
-            setTimeout(() => {
-                // 创建新的动态元素
-                createNewMoment(content);
+            if (!emojiPanel) {
+                emojiPanel = document.createElement('div');
+                emojiPanel.className = 'emoji-panel';
+                emojiPanel.style.position = 'absolute';
+                emojiPanel.style.backgroundColor = 'white';
+                emojiPanel.style.border = '1px solid #ddd';
+                emojiPanel.style.borderRadius = '8px';
+                emojiPanel.style.padding = '10px';
+                emojiPanel.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+                emojiPanel.style.zIndex = '100';
+                emojiPanel.style.display = 'flex';
+                emojiPanel.style.flexWrap = 'wrap';
+                emojiPanel.style.maxWidth = '250px';
                 
-                // 清空输入框
-                publishInput.value = '';
-                publishSubmit.textContent = originalText;
-                publishSubmit.disabled = false;
+                emojis.forEach(emoji => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.style.fontSize = '1.5rem';
+                    btn.style.border = 'none';
+                    btn.style.background = 'none';
+                    btn.style.cursor = 'pointer';
+                    btn.style.margin = '5px';
+                    btn.textContent = emoji;
+                    
+                    btn.addEventListener('click', function() {
+                        publishInput.value += emoji;
+                        emojiPanel.remove();
+                    });
+                    
+                    emojiPanel.appendChild(btn);
+                });
                 
-                alert('动态发布成功！');
-            }, 1000);
+                this.parentNode.appendChild(emojiPanel);
+                const rect = this.getBoundingClientRect();
+                emojiPanel.style.top = `${rect.bottom + window.scrollY}px`;
+                emojiPanel.style.left = `${rect.left + window.scrollX}px`;
+            } else {
+                emojiPanel.remove();
+            }
+        });
+        
+        // 位置功能
+        publishTools[2].addEventListener('click', function() {
+            if (locationInput.style.display === 'none') {
+                locationInput.style.display = 'block';
+                locationInput.querySelector('.location-text').focus();
+            } else {
+                locationInput.style.display = 'none';
+            }
         });
     }
     
-    function createNewMoment(content) {
-        const momentsList = document.getElementById('moments-list');
-        const noMoments = momentsList.querySelector('.no-moments');
+    // 处理图片上传预览
+    function handleImageUpload(files) {
+        if (!files.length) return;
         
-        if (noMoments) {
-            noMoments.remove();
+        imagePreviewGrid.style.display = 'grid';
+        
+        // 限制最多9张图片
+        const maxImages = 9;
+        const currentImages = imagePreviewGrid.children.length;
+        const imagesToProcess = Array.from(files).slice(0, maxImages - currentImages);
+        
+        imagesToProcess.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgContainer = document.createElement('div');
+                imgContainer.style.position = 'relative';
+                imgContainer.style.aspectRatio = '1/1';
+                imgContainer.style.overflow = 'hidden';
+                imgContainer.style.borderRadius = '8px';
+                
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                
+                // 删除按钮
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '×';
+                deleteBtn.style.position = 'absolute';
+                deleteBtn.style.top = '2px';
+                deleteBtn.style.right = '2px';
+                deleteBtn.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                deleteBtn.style.color = 'white';
+                deleteBtn.style.border = 'none';
+                deleteBtn.style.borderRadius = '50%';
+                deleteBtn.style.width = '20px';
+                deleteBtn.style.height = '20px';
+                deleteBtn.style.cursor = 'pointer';
+                deleteBtn.style.display = 'flex';
+                deleteBtn.style.alignItems = 'center';
+                deleteBtn.style.justifyContent = 'center';
+                
+                deleteBtn.addEventListener('click', function() {
+                    imgContainer.remove();
+                    if (imagePreviewGrid.children.length === 0) {
+                        imagePreviewGrid.style.display = 'none';
+                    }
+                });
+                
+                imgContainer.appendChild(img);
+                imgContainer.appendChild(deleteBtn);
+                imagePreviewGrid.appendChild(imgContainer);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    
+    // 发布动态
+    function publishMoment() {
+        if (!isUserLoggedIn()) {
+            alert('请先登录后再发布');
+            return;
         }
         
-        const newMoment = document.createElement('article');
-        newMoment.className = 'moment-item';
-        newMoment.innerHTML = `
-            <div class="moment-header">
-                <div class="moment-avatar">
-                    <img src="${getCurrentUserAvatar()}" alt="用户头像">
-                </div>
-                <div class="moment-user-info">
-                    <div class="moment-nickname">${getCurrentUserName()}</div>
-                    <div class="moment-time">刚刚</div>
-                </div>
-            </div>
-            
-            <div class="moment-content">${content}</div>
-            
-            <div class="moment-actions">
-                <div class="moment-stats"></div>
-                <div class="moment-interaction">
-                    <button class="moment-like" data-moment-id="new" data-liked="false">
-                        👍 赞
-                    </button>
-                    <button class="moment-comment" data-moment-id="new">
-                        💬 评论
-                    </button>
-                </div>
-            </div>
-            
-            <div class="moment-comment-input" style="display: none;">
-                <input type="text" placeholder="评论..." class="comment-text">
-                <button class="comment-submit">发送</button>
-            </div>
-        `;
+        const content = publishInput.value.trim();
+        const location = locationInput.querySelector('.location-text').value.trim();
+        const images = [];
         
-        momentsList.insertBefore(newMoment, momentsList.firstChild);
-    }
-    
-    // ===== 加载更多功能 =====
-    const loadMoreBtn = document.getElementById('load-more-moments');
-    let page = 2;
-    
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', function() {
-            loadMoreMoments();
+        // 收集图片数据
+        Array.from(imagePreviewGrid.children).forEach(child => {
+            const img = child.querySelector('img');
+            if (img) {
+                images.push(img.src);
+            }
         });
-    }
-    
-    function loadMoreMoments() {
-        const data = new FormData();
-        data.append('action', 'load_more_moments');
-        data.append('page', page);
         
-        loadMoreBtn.textContent = '加载中...';
-        loadMoreBtn.disabled = true;
+        if (!content && images.length === 0) {
+            alert('请输入内容或添加图片');
+            return;
+        }
+        
+        const data = new FormData();
+        data.append('action', 'publish_moment');
+        data.append('content', content);
+        data.append('location', location);
+        data.append('images', JSON.stringify(images));
+        
+        publishSubmit.disabled = true;
+        publishSubmit.textContent = '发布中...';
         
         fetch(ajaxurl, {
             method: 'POST',
@@ -368,171 +450,25 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(result => {
-            if (result.success && result.data.html) {
-                document.getElementById('moments-list').insertAdjacentHTML('beforeend', result.data.html);
-                page++;
-                
-                if (!result.data.has_more) {
-                    loadMoreBtn.textContent = '没有更多动态了';
-                    loadMoreBtn.disabled = true;
-                } else {
-                    loadMoreBtn.textContent = '加载更多';
-                    loadMoreBtn.disabled = false;
-                }
+            if (result.success) {
+                // 发布成功，刷新页面或添加到列表
+                location.reload();
             } else {
-                loadMoreBtn.textContent = '没有更多动态了';
-                loadMoreBtn.disabled = true;
+                alert(result.data || '发布失败');
             }
         })
         .catch(error => {
-            console.error('加载更多错误:', error);
-            loadMoreBtn.textContent = '加载失败，点击重试';
-            loadMoreBtn.disabled = false;
+            console.error('发布错误:', error);
+            alert('网络错误，请重试');
+        })
+        .finally(() => {
+            publishSubmit.disabled = false;
+            publishSubmit.textContent = '发布';
         });
     }
     
-    // ===== 工具函数 =====
+    // 检查用户是否登录
     function isUserLoggedIn() {
-        // 这里应该检查用户是否登录
-        // 实际使用时需要与WordPress用户系统集成
-        return true; // 暂时返回true用于测试
+        return typeof kamUser !== 'undefined' && kamUser.loggedIn;
     }
-    
-    function getCurrentUserAvatar() {
-        // 获取当前用户头像
-        return '/wp-content/themes/kam-inspired-theme/assets/images/default-avatar.png';
-    }
-    
-    function getCurrentUserName() {
-        // 获取当前用户名
-        return '当前用户';
-    }
-    
-    // ===== 键盘快捷键 =====
-    document.addEventListener('keydown', function(e) {
-        // ESC键关闭图片预览
-        if (e.key === 'Escape' && imageModal.classList.contains('active')) {
-            closeImageModal();
-        }
-        
-        // Enter键提交评论（在评论输入框内）
-        if (e.key === 'Enter' && e.target.classList.contains('comment-text')) {
-            e.preventDefault();
-            const submitBtn = e.target.closest('.moment-comment-input').querySelector('.comment-submit');
-            if (e.target.value.trim()) {
-                submitBtn.click();
-            }
-        }
-        
-        // Ctrl+Enter 发布动态
-        if (e.key === 'Enter' && e.ctrlKey && document.activeElement === publishInput) {
-            e.preventDefault();
-            publishSubmit.click();
-        }
-    });
-    
-    // ===== 图片懒加载 =====
-    function initLazyLoading() {
-        const images = document.querySelectorAll('img[data-src]');
-        
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    img.src = img.getAttribute('data-src');
-                    img.removeAttribute('data-src');
-                    img.classList.add('loaded');
-                    imageObserver.unobserve(img);
-                }
-            });
-        });
-        
-        images.forEach(img => imageObserver.observe(img));
-    }
-    
-    // ===== 滚动动画 =====
-    function initScrollAnimation() {
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-        
-        const observer = new IntersectionObserver(function(entries) {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, observerOptions);
-        
-        document.querySelectorAll('.moment-item').forEach(item => {
-            item.classList.add('fade-in');
-            observer.observe(item);
-        });
-    }
-    
-    // ===== 初始化所有功能 =====
-    function initAll() {
-        initLazyLoading();
-        initScrollAnimation();
-        
-        // 添加CSS动画
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            
-            .fade-in {
-                opacity: 0;
-                transform: translateY(20px);
-                transition: opacity 0.6s ease, transform 0.6s ease;
-            }
-            
-            .fade-in.visible {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            
-            .moment-image img.loaded {
-                animation: fadeIn 0.5s ease-in;
-            }
-            
-            .nav-toggle.active span:nth-child(1) {
-                transform: rotate(45deg) translate(5px, 5px);
-            }
-            
-            .nav-toggle.active span:nth-child(2) {
-                opacity: 0;
-            }
-            
-            .nav-toggle.active span:nth-child(3) {
-                transform: rotate(-45deg) translate(7px, -6px);
-            }
-            
-            .nav-toggle span {
-                transition: all 0.3s ease;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    // 执行初始化
-    initAll();
 });
-
-// ===== 全局错误处理 =====
-window.addEventListener('error', function(e) {
-    console.error('JavaScript Error:', e.error);
-});
-
-// ===== 控制台欢迎信息 =====
-if (console && console.log) {
-    console.log(`
-    🎨 KAM Inspired Theme v1.0 - 朋友圈版本
-    🌐 微信朋友圈风格布局
-    💡 支持点赞、评论、发布动态
-    👥 真实的社交互动体验
-    `);
-}

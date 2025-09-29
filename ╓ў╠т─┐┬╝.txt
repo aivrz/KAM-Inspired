@@ -1,0 +1,22 @@
+kam-inspired-theme/
+├── style.css
+├── index.php
+├── header.php
+├── footer.php
+├── functions.php
+├── page.php
+├── single.php
+├── about.php
+├── contact.php
+├── 404.php
+├── comments.php
+├── readme.txt
+├── assets/
+│   ├── css/
+│   │   └── main.css
+│   ├── js/
+│   │   └── main.js
+│   └── images/
+│       └── default-avatar.png
+└── template-parts/
+    └── content-work.php
