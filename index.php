@@ -166,17 +166,15 @@
                             </div>
                         <?php endif; ?>
                         
-                        <!-- 评论列表 - 使用WordPress默认评论 -->
-                        <?php if (!empty($moment_comments)) : ?>
-                            <div class="moment-comments">
-                                <?php foreach ($moment_comments as $comment) : ?>
-                                    <div class="moment-comment-item">
-                                        <span class="moment-comment-author"><?php echo esc_html(get_comment_author($comment)); ?>：</span>
-                                        <span class="moment-comment-text"><?php echo esc_html(get_comment_text($comment)); ?></span>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
+                        <!-- 评论输入框 -->
+<div class="moment-comment-input" style="display: none;">
+    <div class="comment-form-fields">
+        <input type="text" placeholder="昵称" class="comment-name">
+        <input type="email" placeholder="邮箱" class="comment-email">
+        <textarea placeholder="添加评论..." class="comment-text"></textarea>
+    </div>
+    <button class="comment-submit">发送</button>
+</div>
                         
                         <!-- 新代码：WordPress评论框容器 -->
 <div class="moment-wordpress-comments" style="display: none;">

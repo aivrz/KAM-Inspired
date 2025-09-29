@@ -35,6 +35,95 @@ body {
     min-height: 100vh;
 }
 
+/* 评论表单样式增强 */
+.moment-comment-input {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    gap: 10px;
+    background: #f8f8f8;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.comment-form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.moment-comment-input input.comment-name,
+.moment-comment-input input.comment-email {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    outline: none;
+    font-size: 0.9rem;
+}
+
+.moment-comment-input textarea.comment-text {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px 12px;
+    outline: none;
+    font-size: 0.9rem;
+    min-height: 80px;
+    resize: none;
+}
+
+.moment-comment-input input:focus,
+.moment-comment-input textarea:focus {
+    border-color: #07C160;
+}
+
+.moment-comment-input .comment-submit {
+    align-self: flex-end;
+    background: #07C160;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
+}
+
+.moment-comment-input .comment-submit:hover {
+    background: #06a850;
+}
+
+/* 评论项样式调整 */
+.moment-comment-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    padding: 5px 0;
+}
+
+.comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.comment-content {
+    background: #e9e9eb;
+    padding: 8px 12px;
+    border-radius: 18px;
+    max-width: 80%;
+}
+
+.moment-comment-author {
+    color: #576b95;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
 .moments-header {
     background: linear-gradient(135deg, #07C160 0%, #09BB07 100%);
     height: 300px;

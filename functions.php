@@ -346,6 +346,8 @@ add_action('wp_ajax_nopriv_moment_like', 'kam_handle_moment_like');
 function kam_handle_moment_comment() {
     $moment_id = intval($_POST['moment_id']);
     $content = sanitize_text_field($_POST['content']);
+    $name = sanitize_text_field($_POST['name']);
+    $email = sanitize_email($_POST['email']);
     $user_id = get_current_user_id();
     
     if (!$user_id) {
@@ -356,33 +358,30 @@ function kam_handle_moment_comment() {
         wp_send_json_error('评论内容不能为空');
     }
     
-    // 使用WordPress默认评论功能
-    $commentdata = array(
-        'comment_post_ID' => $moment_id,
-        'comment_author' => wp_get_current_user()->display_name,
-        'comment_author_email' => wp_get_current_user()->user_email,
-        'comment_author_url' => wp_get_current_user()->user_url,
-        'comment_content' => $content,
-        'comment_type' => '',
-        'comment_parent' => 0,
-        'user_id' => $user_id,
+    if (empty($name)) {
+        wp_send_json_error('请输入昵称');
+    }
+    
+    if (empty($email) || !is_email($email)) {
+        wp_send_json_error('请输入有效的邮箱地址');
+    }
+    
+    $comment = array(
+        'author' => $name,
+        'email' => $email,
+        'content' => $content,
+        'time' => current_time('mysql')
     );
     
-    // 添加评论
-    $comment_id = wp_new_comment($commentdata);
-    $comment = get_comment($comment_id);
+    $comments = get_post_meta($moment_id, 'moment_comments', true) ?: array();
+    $comments[] = $comment;
     
-    if ($comment) {
-        wp_send_json_success(array(
-            'comment' => array(
-                'author' => $comment->comment_author,
-                'content' => $comment->comment_content
-            ),
-            'comment_count' => get_comments_number($moment_id)
-        ));
-    } else {
-        wp_send_json_error('评论失败');
-    }
+    update_post_meta($moment_id, 'moment_comments', $comments);
+    
+    wp_send_json_success(array(
+        'comment' => $comment,
+        'comment_count' => count($comments)
+    ));
 }
 add_action('wp_ajax_moment_comment', 'kam_handle_moment_comment');
 

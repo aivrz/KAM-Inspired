@@ -467,6 +467,128 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // 添加MD5函数用于生成Gravatar头像哈希
+function md5(str) {
+    let hash = 0;
+    if (str.length === 0) return hash;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return Math.abs(hash).toString(16).padStart(32, '0');
+}
+
+// 修改评论提交事件处理
+document.addEventListener('click', function(e) {
+    // ... 保持其他代码不变 ...
+    
+    if (e.target.classList.contains('comment-submit')) {
+        const button = e.target;
+        const momentItem = button.closest('.moment-item');
+        const momentId = momentItem.getAttribute('data-moment-id');
+        const textInput = momentItem.querySelector('.comment-text');
+        const nameInput = momentItem.querySelector('.comment-name');
+        const emailInput = momentItem.querySelector('.comment-email');
+        
+        const content = textInput.value.trim();
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        
+        if (content && name && email) {
+            submitComment(momentId, content, name, email, momentItem, button);
+        } else {
+            alert('请填写完整信息');
+        }
+    }
+});
+
+// 更新评论提交函数
+function submitComment(momentId, content, name, email, momentItem, button) {
+    // 检查用户是否登录
+    if (!isUserLoggedIn()) {
+        alert('请先登录后再评论');
+        return;
+    }
+    
+    // 简单邮箱验证
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('请输入有效的邮箱地址');
+        return;
+    }
+    
+    const data = new FormData();
+    data.append('action', 'moment_comment');
+    data.append('moment_id', momentId);
+    data.append('content', content);
+    data.append('name', name);
+    data.append('email', email);
+    
+    // 显示加载状态
+    const originalText = button.textContent;
+    button.textContent = '发送中...';
+    button.disabled = true;
+    
+    fetch(ajaxurl, {
+        method: 'POST',
+        body: data
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            addCommentToDOM(result.data.comment, momentItem);
+            updateCommentStats(momentId, result.data.comment_count);
+            
+            // 清空输入框并隐藏
+            momentItem.querySelector('.comment-text').value = '';
+            momentItem.querySelector('.comment-name').value = '';
+            momentItem.querySelector('.comment-email').value = '';
+            momentItem.querySelector('.moment-comment-input').style.display = 'none';
+        } else {
+            alert(result.data || '评论失败');
+        }
+    })
+    .catch(error => {
+        console.error('评论错误:', error);
+        alert('网络错误，请重试');
+    })
+    .finally(() => {
+        button.textContent = originalText;
+        button.disabled = false;
+    });
+}
+
+// 更新评论显示函数，添加头像
+function addCommentToDOM(comment, momentItem) {
+    let commentsContainer = momentItem.querySelector('.moment-comments');
+    if (!commentsContainer) {
+        commentsContainer = document.createElement('div');
+        commentsContainer.className = 'moment-comments';
+        const actions = momentItem.querySelector('.moment-actions');
+        actions.insertAdjacentElement('afterend', commentsContainer);
+    }
+    
+    // 生成Gravatar头像URL
+    const emailHash = md5(comment.email.toLowerCase());
+    const avatarUrl = `https://www.gravatar.com/avatar/${emailHash}?d=identicon&s=36`;
+    
+    const commentItem = document.createElement('div');
+    commentItem.className = 'moment-comment-item';
+    commentItem.innerHTML = `
+        <img src="${avatarUrl}" alt="${comment.author}" class="comment-avatar">
+        <div class="comment-content">
+            <span class="moment-comment-author">${comment.author}</span>
+            <span class="moment-comment-text">${comment.content}</span>
+        </div>
+    `;
+    
+    commentsContainer.appendChild(commentItem);
+    
+    // 滚动到最新评论
+    commentItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+    
     // 检查用户是否登录
     function isUserLoggedIn() {
         return typeof kamUser !== 'undefined' && kamUser.loggedIn;
