@@ -185,6 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
         data.append('action', 'moment_comment');
         data.append('moment_id', momentId);
         data.append('content', content);
+        data.append('nonce', ajaxParams.commentNonce); // 新增：携带nonce
         
         // 显示加载状态
         const originalText = button.textContent;

@@ -38,7 +38,11 @@ function kam_theme_scripts() {
     
     // 为AJAX传递参数
     wp_localize_script('main-js', 'ajaxurl', admin_url('admin-ajax.php'));
-    
+    // 传递AJAX地址和nonce
+    wp_localize_script('main-js', 'ajaxParams', array(
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'commentNonce' => wp_create_nonce('moment_comment_nonce') // 生成nonce
+    ));
     // 传递用户登录状态
     wp_localize_script('main-js', 'kamUser', array(
         'loggedIn' => is_user_logged_in()
@@ -365,7 +369,18 @@ function kam_handle_moment_comment() {
     if (empty($email) || !is_email($email)) {
         wp_send_json_error('请输入有效的邮箱地址');
     }
+    // 新增：验证nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'moment_comment_nonce')) {
+        wp_send_json_error('安全验证失败', 403); // 验证失败返回403
+    }
     
+    $moment_id = intval($_POST['moment_id']);
+    $content = sanitize_text_field($_POST['content']);
+    $user_id = get_current_user_id();
+    
+    if (!$user_id) {
+        wp_send_json_error('请先登录'); // 仍可限制登录后评论
+    }
     $comment = array(
         'author' => $name,
         'email' => $email,
@@ -383,7 +398,10 @@ function kam_handle_moment_comment() {
         'comment_count' => count($comments)
     ));
 }
+// 原有登录用户钩子
 add_action('wp_ajax_moment_comment', 'kam_handle_moment_comment');
+// 新增未登录用户钩子（即使后端验证登录，也需注册否则返回400）
+add_action('wp_ajax_nopriv_moment_comment', 'kam_handle_moment_comment');
 
 // 发布动态处理
 function kam_handle_publish_moment() {
